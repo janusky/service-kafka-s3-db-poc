@@ -4,6 +4,39 @@ Apuntes relevantes y detalles de ejecución en modo desarrollo.
 
 ## Run develop mode
 
+Descargar proyecto
+
+```sh
+git clone https://github.com/janusky/service-kafka-s3-db-poc.git
+```
+
+### Copiar aplicaciones involucradas
+
+Producer & Consumer ([+](https://spring.io/blog/2020/08/10/case-study-build-and-run-a-streaming-application-using-an-http-source-and-a-jdbc-sink))
+
+```sh
+cd service-kafka-s3-db-poc
+
+wget -O producers/send_app/http-source-kafka-3.0.0-SNAPSHOT.jar https://repo.spring.io/snapshot/org/springframework/cloud/stream/app/http-source-kafka/3.0.0-SNAPSHOT/http-source-kafka-3.0.0-SNAPSHOT.jar
+
+wget -O consumers/insert_app/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar wget https://repo.spring.io/snapshot/org/springframework/cloud/stream/app/jdbc-sink-kafka/3.0.0-SNAPSHOT/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar
+```
+
+Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
+
+* <https://github.com/janusky/publisher-http-s3/packages/528509>
+
+```sh
+cd service-kafka-s3-db-poc
+
+# publisher-http-s3-0.0.1-20201204.132644-1.jar
+curl -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar
+```
+
+### Start run
+
+Ejecutar cuando haya descargado las [aplicaciones involucradas](#Copiar-aplicaciones-involucradas)
+
 ```sh
 # Run dev
 docker-compose -f development.yml up -d
@@ -24,9 +57,9 @@ docker exec ceph ceph mgr services
 ```sh
 # Post to write_app
 for i in {1..20}; do \
-    curl -v --noproxy '*' -F transaction=$i \
-    -F files=@./services/write_app/files/file-one.pdf \
-    http://localhost:9000/api/v1/post; \
+  curl -v --noproxy '*' -F transaction=$i \
+  -F files=@./services/write_app/files/file-one.pdf \
+  http://localhost:9000/api/v1/post; \
 done
 ```
 

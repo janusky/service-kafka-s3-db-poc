@@ -49,11 +49,14 @@ wget -O consumers/insert_app/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar wget https://rep
 
 Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
 
+* <https://github.com/janusky/publisher-http-s3/packages/528509>
+
 ```sh
 cd service-kafka-s3-db-poc
 
 # publisher-http-s3-0.0.1-20201204.132644-1.jar
-wget -O services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20201204%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20201204T134442Z&X-Amz-Expires=300&X-Amz-Signature=da0f1db6015a43f573cbd4be6238c34b6f5bf004f911045d76897a7cef15a236&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=0&response-content-disposition=filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar&response-content-type=application%2Foctet-stream
+# wget -O services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20201204%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20201204T134442Z&X-Amz-Expires=300&X-Amz-Signature=da0f1db6015a43f573cbd4be6238c34b6f5bf004f911045d76897a7cef15a236&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=0&response-content-disposition=filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar&response-content-type=application%2Foctet-stream
+curl -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar
 ```
 
 ### Start run
@@ -67,7 +70,7 @@ cd service-kafka-s3-db-poc
 docker-compose up -d
 ```
 
-Before run Ceph configuration (remember [Check s3 Prometheus](#Check-S3-Prometheus))
+After run Ceph configuration remember [Check s3 Prometheus](#Check-S3-Prometheus)
 
 ```sh
 # Verify State Up
@@ -99,7 +102,7 @@ S3 metrics -> http://localhost:9283/metrics
 * Prometheus -> http://localhost:9090/
   * Check Jobs Up http://localhost:9090/targets
 
-* Ceph -> http://localhost:8080/ or http://172.240.49.25:8080/
+* Ceph -> http://localhost:9280/ or http://172.240.49.25:9280/
 
 * Alermanager -> http://localhost:9093/
 
@@ -118,8 +121,8 @@ Input application [publisher-http-s3](https://github.com/janusky/publisher-http-
 
 Producer and Consumer at Kafka
 
-* Producer [http-source-kafka] (producers / send_app / http-source-kafka-3.0.0-SNAPSHOT.jar) -> in topic
-* Consumer [jdbc-sink-kafka] (consumers / insert_app / jdbc-sink-kafka-3.0.0-SNAPSHOT.jar) -> out topic & write database
+* Producer [http-source-kafka](producers/send_app/http-source-kafka-3.0.0-SNAPSHOT.jar) -> in topic
+* Consumer [jdbc-sink-kafka](consumers/insert_app/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar) -> out topic & write database
 
 First step [Run](#Run)
 
@@ -175,7 +178,7 @@ curl -v --noproxy '*' -F transaction=001 \
 docker exec -it database mysql -u root -p
 
 mysql>Use Demo;
-mysql>select * from Declaracion;
+mysql>select * from Post;
 mysql>exit;
 ```
 

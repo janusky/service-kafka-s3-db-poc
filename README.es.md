@@ -49,6 +49,8 @@ wget -O consumers/insert_app/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar wget https://rep
 
 Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
 
+* <https://github.com/janusky/publisher-http-s3/packages/528509>
+
 ```sh
 cd service-kafka-s3-db-poc
 
@@ -67,7 +69,7 @@ cd service-kafka-s3-db-poc
 docker-compose up -d
 ```
 
-Before run Ceph configuration (remember [Check s3 Prometheus](#Check-S3-Prometheus))
+Luego de ejecutar la configuración de Ceph recuerde [Check s3 Prometheus](#Check-S3-Prometheus)
 
 ```sh
 # Verify State Up
@@ -99,7 +101,7 @@ S3 metrics -> http://localhost:9283/metrics
 * Prometheus -> http://localhost:9090/
   * Check Jobs Up http://localhost:9090/targets
 
-* Ceph -> http://localhost:8080/ or http://172.240.49.25:8080/
+* Ceph -> http://localhost:9280/ or http://172.240.49.25:9280/
 
 * Alermanager -> http://localhost:9093/
 
@@ -175,7 +177,7 @@ curl -v --noproxy '*' -F transaction=001 \
 docker exec -it database mysql -u root -p
 
 mysql>Use Demo;
-mysql>select * from Declaracion;
+mysql>select * from Post;
 mysql>exit;
 ```
 
