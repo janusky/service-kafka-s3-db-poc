@@ -1,0 +1,64 @@
+# > version: '3'
+
+# Monitoreo -> Grafana, Prometheus, Alertmanager
+services:
+  grafana:
+    extends: 
+      file: common-services.yml
+      service: grafana
+    container_name: grafana
+    ports:
+      - ${GRAFANA_DOCKER_PORT:-3000}:3000
+    volumes:
+      - ./grafana/plugins:/var/lib/grafana/plugins
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - grafana:/var/lib/grafana
+
+  prometheus:
+    extends:
+      file: common-services.yml
+      service: prometheus
+    container_name: prometheus
+    ports:
+      - ${PROMETHEUS_DOCKER_PORT:-9090}:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus:/prometheus
+
+  alertmanager:
+    extends: 
+      file: common-services.yml
+      service: alertmanager
+    container_name: alertmanager
+    ports:
+      - ${ALERTMANAGER_DOCKER_PORT:-9093}:9093
+
+  node-exporter:
+    extends: 
+      file: common-services.yml
+      service: node-exporter
+    container_name: node-exporter
+    ports:
+      - 9100:${NODE_EXPORTER_DOCKER_PORT:-9100}
+
+  cadvisor:
+    extends: 
+      file: common-services.yml
+      service: cadvisor
+    container_name: cadvisor
+    hostname: cadvisor
+    privileged: true
+    # network_mode: "host"
+    ports:
+      - 8080:${CADVISOR_DOCKER_PORT:-8080}
+
+volumes:
+  grafana: {}
+  prometheus: {}
+
+networks:
+  default:
+    # driver: bridge
+    ipam:
+      config:
+        - subnet: 172.240.49.6/24

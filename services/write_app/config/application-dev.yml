@@ -1,0 +1,107 @@
+server:
+  port: ${PORT:8443}
+  #address: local.localhost
+  servlet:
+    contextPath: /
+  ssl:
+    enabled: false
+    #key-alias: local.localhost
+    key-store-type: PKCS12
+    key-store: config/ssl/key-store.pfx
+    key-store-password: storepass
+    trust-store-type: PKCS12
+    trust-store: config/ssl/trust-store.pfx
+    trust-store-password: storepass
+    client-auth: none
+app:
+  route:
+    api: ${API:/api/v1}
+    path-public: /info,/status,${app.route.api}/**
+    producer: ${APP_PRODUCER_URI:http://localhost:9000}
+  proxy:
+    enabled: false
+    host: my.proxy
+    port: 80
+  certificates-enable:
+
+security:
+  headers:
+    hsts: NONE
+
+spring:
+  #main:
+  #  web-application-type: reactive
+  profiles:
+    active: development
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+  application:
+    name: write-app
+  # En desarrollo para pruebas
+  webflux:
+    static-path-pattern: classpath:/static/**
+
+# Storage S3
+storage:
+  s3:
+    enabled: true
+    accessKey: ${S3_ACCESS_KEY:sandboxKey}
+    secretKey: ${S3_SECRET_KEY:sandboxSecret}
+    bucket: ${S3_BUCKET:sandbox-bk}
+    endpoint: ${S3_ENDPOINT:localhost:8080}
+    ssl:
+      enabled: ${S3_SSL_ENABLED:true}
+      key-store: config/ssl/key-store-ceph.jks
+      key-store-password: changeit
+      trust-store: config/ssl/trust-store-ceph.jks
+      trust-store-password: changeit
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      region: app-region
+    web:
+      server:
+        request:
+          autotime:
+            percentiles: 0.95
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+      sla:
+        http:
+          server:
+            requests: 50ms
+  server:
+    port: ${ACTUATOR_PORT:8091}
+    address: ${ACTUATOR_HOST:localhost}
+    servlet:
+      context-path: /
+  security:
+    enabled: false
+
+# https://www.baeldung.com/spring-boot-info-actuator-custom
+info:
+  app:
+    name: write-app
+  environment: desarrollo
+  
+logging:
+  file: logs/write-app.log
+  level:
+    root: ${LOG_LEVEL:INFO}

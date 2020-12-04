@@ -1,0 +1,12 @@
+CREATE DATABASE IF NOT EXISTS Demo;
+USE Demo;
+CREATE TABLE IF NOT EXISTS Post (
+	 id INT NOT NULL AUTO_INCREMENT,
+	 transaction VARCHAR(130) NOT NULL,
+	 transaction_customer VARCHAR(130),
+	 id_customer VARCHAR(11),
+	 filename VARCHAR(255) NOT NULL,
+	 url VARCHAR(255) NOT NULL,
+	 size VARCHAR(255) NOT NULL,
+	 mimetype VARCHAR(255) NOT NULL,
+	 PRIMARY KEY (id));

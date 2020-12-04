@@ -1,0 +1,86 @@
+# > version: '3'
+
+services:
+  grafana:
+    image: grafana/grafana
+    expose:
+      - ${GRAFANA_DOCKER_PORT:-3000}
+    # volumes:
+    #   - ./config/grafana/provisioning/:/etc/grafana/provisioning/
+    #   - ./config/grafana/grafana-piechart-panel:/var/lib/grafana/plugins/
+
+  prometheus:
+    image: prom/prometheus
+    expose:
+      - ${PROMETHEUS_DOCKER_PORT:-9090}
+    # command:
+    #   - '-alertmanager.url=http://alertmanager:9093'
+    #   - '-storage.local.path=/prometheus'
+    # volumes:
+    #   - ./config/prometheus/alert.rules:/etc/prometheus/alert.rules
+    #   - ./config/prometheus/${PROMETHEUS_FILE_CONF:-prometheus-all.yml}:/etc/prometheus/prometheus.yml
+
+  alertmanager:
+    image: prom/alertmanager
+    expose:
+      - ${ALERTMANAGER_DOCKER_PORT:-9093}
+    # volumes:
+    #   - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--log.level=info'
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--cluster.advertise-address=0.0.0.0:9093'
+      # - '--web.external-url=http://localhost:9093'
+      # - '--storage.path=/alertmanager'
+
+  node-exporter:
+    # image: prom/node-exporter:v0.18.1
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points'
+      - '^(aufs|proc|nsfs|shm|cgroup|tmpfs|binfmt_misc|debugfs|devpts|fusectl|hugetlbfs|fuse.lxcfs|mqueue|pstore|securityfs|sysfs|autofs|devtmpfs|configfs)'
+    expose:
+      - ${NODE_EXPORTER_DOCKER_PORT:-9100}
+
+  cadvisor:
+    #gcr.io/cadvisor/cadvisor:[v0.38.4,v0.37.0,v0.36.0 | google/cadvisor:v0.33.0 | gcr.io/google-containers/cadvisor:latest
+    # OK -> image: google/cadvisor:v0.33.0
+    image: gcr.io/cadvisor/cadvisor:v0.36.0
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    expose:
+      - ${CADVISOR_DOCKER_PORT:-8080}
+
+  ceph:
+    image: ceph/daemon
+    environment:
+      # - MON_IP=127.0.0.1
+      - MON_IP=${MON_IP:-127.0.0.1}
+      - CEPH_PUBLIC_NETWORK=${CEPH_PUBLIC_NETWORK:-0.0.0.0/0}
+      - CEPH_DAEMON=${CEPH_DAEMON:-demo}
+      - CEPH_DEMO_UID=${CEPH_DEMO_UID:-sandbox}
+      - CEPH_DEMO_ACCESS_KEY=${CEPH_DEMO_ACCESS_KEY:-sandboxKey}
+      - CEPH_DEMO_SECRET_KEY=${CEPH_DEMO_SECRET_KEY:-sandboxSecret}
+      # docker exec ceph s3cmd mb s3://sandbox-bk
+      - CEPH_DEMO_BUCKET=${CEPH_DEMO_BUCKET:-sandbox-bk}
+      # Default 8080
+      # - RGW_CIVETWEB_PORT=${CEPH_DOCKER_PORT:-9280}
+      - RGW_FRONTEND_PORT=${CEPH_DOCKER_PORT:-9280}
+    expose:
+      - ${CEPH_DOCKER_PORT:-9280}
+      - ${CEPH_DOCKER_METRICS_PORT:-9283}
+    # volumes:
+    #   - /var/lib/ceph:/var/lib/ceph
+    #   - /etc/ceph:/etc/ceph
+    # Solve create bucket bug :(
+    entrypoint: 'bash -c "sed -i \"s/timeout 5/timeout 20/\" /opt/ceph-container/bin/demo.sh && /opt/ceph-container/bin/entrypoint.sh"'

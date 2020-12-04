@@ -1,0 +1,157 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds
+
+rule_files:
+  - 'alert.rules'
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'kafka'
+    static_configs:
+    - targets:
+      - 'kafka-1:1234'
+      - 'kafka-2:1234'
+      - 'kafka-3:1234'
+      labels:
+        env: 'dev'
+
+  - job_name: 'zookeeper'
+    static_configs:
+    - targets:
+      - 'zookeeper-1:1234'
+      - 'zookeeper-2:1234'
+      - 'zookeeper-3:1234'
+      labels:
+        env: 'dev'
+
+  - job_name: 'ceph'
+    static_configs:
+    - targets: ['172.240.49.25:9283']
+      labels:
+        group: 's3'
+        env: 'dev'
+        application: 'ceph'
+        instance: 'ceph'
+
+  - job_name: 'write-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - 'write-service:8090'
+      labels:
+        group: 'app'
+        env: 'dev'
+        application: 'write-service'
+        instance: 'write-service'
+
+  - job_name: 'producer-data'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    scheme: http
+    static_configs:
+    - targets:
+      - producer-data:8091
+      labels:
+        group: 'topic'
+        env: 'dev'
+        application: 'send-data'
+        instance: 'send-data'
+  # JMX Job
+  - job_name: 'producer'
+    static_configs:
+      - targets:
+          - 'producer-data:1234'
+        labels:
+          env: 'dev'
+
+  - job_name: 'consumer-insert'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    scheme: http
+    static_configs:
+    - targets:
+      - consumer-insert:8093
+      labels:
+        group: 'topic'
+        env: 'dev'
+        application: 'jdbc-insert'
+        instance: 'jdbc-insert'
+  # JMX Job
+  - job_name: 'consumer'
+    static_configs:
+      - targets:
+          - 'consumer-insert:1234'
+        labels:
+          env: 'dev'
+
+  - job_name: 'node-exporter'
+    static_configs:
+    - targets: ['node-exporter:9100']
+      labels:
+        group: 'container'
+        env: 'dev'
+        instance: 'node'
+        application: 'node'
+        namespace: 'node'
+
+  - job_name: 'cadvisor'
+    scrape_interval: 5s
+    scheme: http
+    static_configs:
+    - targets:
+      - 'cadvisor:8080'
+      labels:
+        group: 'container'
+        env: 'dev'
+        instance: 'container'
+        application: 'container'
+    # dns_sd_configs:
+    # - names:
+    #   - 'tasks.cadvisor'
+    #   type: 'A'
+    #   port: 8081
+
+  # TODO 16/11/2020 janusky@gmail.com - Implement
+  # - job_name: 'producer-s3'
+  #   metrics_path: '/actuator/prometheus'
+  #   scrape_interval: 5s
+  #   scheme: http
+  #   static_configs:
+  #   - targets:
+  #     - producer-s3:8092
+  #     labels:
+  #       group: 'topic'
+  #       env: 'dev'
+  #       application: 's3-update'
+  #       instance: 's3-update'
+  # # JMX Job
+  # - job_name: 'producer-s3-jmx'
+  #   static_configs:
+  #     - targets:
+  #         - 'producer-s3:1234'
+  #       labels:
+  #         env: 'dev'
+  # - job_name: 'consumer-update'
+  #   metrics_path: '/actuator/prometheus'
+  #   scrape_interval: 5s
+  #   scheme: http
+  #   static_configs:
+  #   - targets:
+  #     - consumer-update:8094
+  #     labels:
+  #       group: 'topic'
+  #       env: 'dev'
+  #       application: 'jdbc-update'
+  #       instance: 'jdbc-update'
