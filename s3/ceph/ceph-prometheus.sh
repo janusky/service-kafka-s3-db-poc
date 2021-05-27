@@ -4,22 +4,36 @@
 CEPH_ID=$(docker ps -a | grep ceph/daemon | awk {'print $1'})
 
 if [ "$( docker container inspect -f '{{.State.Running}}' $CEPH_ID )" == "true" ]; then
-    echo -e "Configure Prometheus module.."
-
     # Ceph correct startup check
     i=0
-    while [ $i -le 22 ]; do
-        BK_FIND=$(docker exec $CEPH_ID s3cmd ls)
-        if [ -n "$BK_FIND" ]; then
+    to=10
+    while [ $i -le $to ]; do
+        RUN_FIND=$(docker logs $CEPH_ID 2>&1 | grep "/opt/ceph-container/bin/entrypoint.sh: SUCCESS")
+        if [ -n "$RUN_FIND" ]; then
             break
         fi
-        echo "Waiting for a bucket exist .."
-        sleep 1
+        echo "Waiting for a Ceph entrypoint success ..$i-$to"
+        sleep 3
         #((i++))
         i=$((i+1))
+        if [ $i -eq $to ]; then
+            read -p "Keep waiting [s|y]? " -n 1 -r
+            echo    # (optional) move to a new line
+            if [[ $REPLY =~ ^[YySs]$ ]]
+            then
+                i=0
+            else
+                break
+            fi
+        fi
     done
+    if [ ! -n "$RUN_FIND" ]; then
+        echo -e "\e[31mThere is not Ceph started successfully\e[0m(solve: rerun)"
+        exit 1
+    fi
 
-    if [ -n "$BK_FIND" ]; then
+    if [ ! -n "$(docker exec $CEPH_ID ceph mgr services | grep -e 'prometheus')" ]; then
+        echo -e "Configure Prometheus module.."
         until docker exec $CEPH_ID sh -c "sed -i '/\[global\]/a \
             auth_cluster_required = none\nauth_service_required = none\nauth_client_required = none\n
             ' /etc/ceph/ceph.conf" &> /dev/null
@@ -39,8 +53,7 @@ if [ "$( docker container inspect -f '{{.State.Running}}' $CEPH_ID )" == "true" 
         && docker restart $CEPH_ID
         # exit 0
     else
-        echo -e "There is not bucker that inicates that Ceph started successfully"
-        exit 1
+        echo -e "The prometheus module is enabled!"
     fi
 else 
     echo -e "Ceph container is not running"
