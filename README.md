@@ -2,13 +2,38 @@
 
 Development of **Docker** containers to create a suitable environment emulating the execution of **Kafka/S3/DB/Services** and monitoring with **Grafana/Prometheus**.
 
+Architecture Docker Images
+
+* Kafka - [confluentinc/cp-kafka:6.0.0](https://hub.docker.com/r/confluentinc/cp-kafka)
+* Zookeeper - [confluentinc/cp-zookeeper:6.0.0](https://hub.docker.com/r/confluentinc/cp-zookeeper)
+* S3 - [ceph/daemon](https://hub.docker.com/r/ceph/daemon)
+* DB - [mysql:5.7.25](https://hub.docker.com/_/mysql)
+
+Monitor Docker Images
+
+* Grafana - [grafana/grafana](https://hub.docker.com/r/grafana/grafana)
+* Prometheus - [prom/prometheus](https://hub.docker.com/r/prom/prometheus)
+* Alertmanager - [prom/alertmanager](https://hub.docker.com/r/prom/alertmanager)
+* Node Exporter - [prom/node-exporter](https://hub.docker.com/r/prom/node-exporter)
+* Cadvisor - [gcr.io/cadvisor/cadvisor:v0.36.0](https://github.com/google/cadvisor)
+
+Services Applications
+
+* Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
+* Producer [http-source-kafka](https://repo.spring.io/snapshot/org/springframework/cloud/stream/app/http-source-kafka/3.0.0-SNAPSHOT/http-source-kafka-3.0.0-SNAPSHOT.jar)
+* Consumer [jdbc-sink-kafka](https://repo.spring.io/snapshot/org/springframework/cloud/stream/app/jdbc-sink-kafka/3.0.0-SNAPSHOT/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar)
+
+>Info: Producer & Consumer ([+](https://spring.io/blog/2020/08/10/case-study-build-and-run-a-streaming-application-using-an-http-source-and-a-jdbc-sink))
+
+## Objetive
+
 It seeks to reflect the scenario where they interact
 
-**user** -> **webapp** (file and metadata)
+**user** -> **webapp** (send file and metadata)
 
 1. Save file in S3
 
-2. Publish message on kafka topic <- consumer (process message) -> impacts database
+2. Publish message on Kafka
 
 Desired indicators
 
@@ -25,17 +50,48 @@ Proposed architecture
 
 The default execution requires a computer at least 8GB of RAM. If you have a lower computer, you must run in [development mode](DEVELOPMENT.md#Run-develop-mode).
 
-* [Run develop mode](DEVELOPMENT.md#Run-develop-mode)
+A mode [easy](#run-for-dummies) and [step by step](#run-step-by-step) are available. Developers are advised to proceed with the execution step by step, to gain a better understanding.
 
->NOTA: If you want to delete the containers and volumes run `docker-compose down -v`.
+* [Run for dummies](#run-for-dummies)
+* [Run step by step](#run-step-by-step)
 
-Download project
+>**INFO**  
+>If you need to update docker
+>* [See upgrade docker](docs/docker.md)
+>
+>If you want to delete the containers and volumes run `docker-compose down -v`.
+
+### Run for dummies
+
+There is a file [run-for-dummies.sh](run-for-dummies.sh) type `script` that allows executing the application in a single action
+
+```sh
+# Download project
+git clone https://github.com/janusky/service-kafka-s3-db-poc.git
+
+# Run
+bash run-for-dummies.sh
+```
+
+Enter in [Accesses](#accesses) or see [Demo](#demo).
+
+### Run step by step
+
+Step-by-step execution, detailing the components/artifacts involved
+
+* **1** [Download project](#download-project)
+* **2** [Copy involved apps](#copy-involved-apps)
+* **3** [Start run](#start-run)
+
+#### Download project
+
+The project is necessary to configure the containers involved
 
 ```sh
 git clone https://github.com/janusky/service-kafka-s3-db-poc.git
 ```
 
-### Copy involved apps
+#### Copy involved apps
 
 Producer & Consumer ([+](https://spring.io/blog/2020/08/10/case-study-build-and-run-a-streaming-application-using-an-http-source-and-a-jdbc-sink))
 
@@ -54,14 +110,13 @@ Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
 ```sh
 cd service-kafka-s3-db-poc
 
-# publisher-http-s3-0.0.1-20201204.132644-1.jar
-# wget -O services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20201204%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20201204T134442Z&X-Amz-Expires=300&X-Amz-Signature=da0f1db6015a43f573cbd4be6238c34b6f5bf004f911045d76897a7cef15a236&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=0&response-content-disposition=filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar&response-content-type=application%2Foctet-stream
-curl -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar
+# Download from web: publisher-http-s3-0.0.1-20201204.132644-1.jar
+curl $(curl -f -L https://github.com/janusky/publisher-http-s3/packages/528509?version=0.0.1-SNAPSHOT | grep -Eo 'href="(.*publisher-http-s3-0.*\.jar.*)"' | cut -d'"' -f2 | sed 's/\&amp;/\&/g') -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar
 ```
 
-### Start run
+#### Start run
 
-Run when you have downloaded the [applications involved](#Copy-involved-apps)
+Run when you have downloaded the [applications involved](#copy-involved-apps)
 
 ```sh
 cd service-kafka-s3-db-poc
@@ -70,7 +125,7 @@ cd service-kafka-s3-db-poc
 docker-compose up -d
 ```
 
-After run Ceph configuration remember [Check s3 Prometheus](#Check-S3-Prometheus)
+After run Ceph configuration remember [Check s3 Prometheus](#check-S3-Prometheus)
 
 ```sh
 # Verify State Up
@@ -78,10 +133,12 @@ docker-compose ps
 
 # Run Ceph config
 # If sudo grep "Bucket" $(docker inspect --format={{.LogPath}} ceph)
-[[ -n "$(docker exec ceph s3cmd ls)" ]] && bash ./s3/ceph/ceph-prometheus.sh || echo -e "\e[31mWait for Ceph to finish"
+[[ -n "$(docker logs ceph 2>&1 | grep "/opt/ceph-container/bin/entrypoint.sh: SUCCESS")" ]] && bash ./s3/ceph/ceph-prometheus.sh || echo -e "\e[31mWait for Ceph to finish"
 ```
 
-### Check S3 Prometheus
+Enter in [Accesses](#accesses) or see [Demo](#demo).
+
+#### Check S3 Prometheus
 
 S3 services
 
@@ -95,7 +152,9 @@ docker exec ceph ceph mgr services
 
 S3 metrics -> http://localhost:9283/metrics
 
-### Accesos
+## Accesses
+
+After executing you should access the following URLs
 
 * Grafana -> http://localhost:3000/ (admin/admin)
 
@@ -124,7 +183,7 @@ Producer and Consumer at Kafka
 * Producer [http-source-kafka](producers/send_app/http-source-kafka-3.0.0-SNAPSHOT.jar) -> in topic
 * Consumer [jdbc-sink-kafka](consumers/insert_app/jdbc-sink-kafka-3.0.0-SNAPSHOT.jar) -> out topic & write database
 
-First step [Run](#Run)
+First step [Run](#run)
 
 Before start, check all container run
 

@@ -29,8 +29,8 @@ Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
 ```sh
 cd service-kafka-s3-db-poc
 
-# publisher-http-s3-0.0.1-20201204.132644-1.jar
-curl -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar
+# Download from web: publisher-http-s3-0.0.1-20201204.132644-1.jar
+curl $(curl -f -L https://github.com/janusky/publisher-http-s3/packages/528509?version=0.0.1-SNAPSHOT | grep -Eo 'href="(.*publisher-http-s3-0.*\.jar.*)"' | cut -d'"' -f2 | sed 's/\&amp;/\&/g') -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar
 ```
 
 ### Start run

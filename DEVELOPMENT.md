@@ -29,9 +29,8 @@ Service [publisher-http-s3](https://github.com/janusky/publisher-http-s3)
 ```sh
 cd service-kafka-s3-db-poc
 
-# publisher-http-s3-0.0.1-20201204.132644-1.jar
-# wget -O services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20201204%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20201204T134442Z&X-Amz-Expires=300&X-Amz-Signature=da0f1db6015a43f573cbd4be6238c34b6f5bf004f911045d76897a7cef15a236&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=0&response-content-disposition=filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar&response-content-type=application%2Foctet-stream
-curl -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar https://github-production-registry-package-file-4f11e5.s3.amazonaws.com/317548766/a333d780-361c-11eb-880e-424cc1058ebc?filename%3Dpublisher-http-s3-0.0.1-20201204.132644-1.jar
+# Download from web: publisher-http-s3-0.0.1-20201204.132644-1.jar
+curl $(curl -f -L https://github.com/janusky/publisher-http-s3/packages/528509?version=0.0.1-SNAPSHOT | grep -Eo 'href="(.*publisher-http-s3-0.*\.jar.*)"' | cut -d'"' -f2 | sed 's/\&amp;/\&/g') -o services/write_app/publisher-http-s3-0.0.1-SNAPSHOT.jar
 ```
 
 ### Start run
